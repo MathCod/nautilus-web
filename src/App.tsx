@@ -19,6 +19,8 @@ import { Travaux } from './components/Travaux';
 import { ProjectModal } from './components/ProjectModal';
 import { Plan } from './components/Plan';
 import { Timonier } from './components/Timonier';
+import { NautilusLogo } from './components/NautilusLogo';
+
 
 function useNow(intervalMs = 60_000) {
   const [now, setNow] = useState(() => new Date());
@@ -80,7 +82,7 @@ export default function App() {
         {activeTab === 'accueil' && (
           <div>
             <div style={{ textAlign: 'center', margin: '20px 0 10px 0' }}>
-              <div style={{ fontSize: '48px', color: 'var(--color-accent)', marginBottom: '8px' }}>⚓</div>
+              <NautilusLogo size={92} />
               <div style={{ fontFamily: 'var(--font-sc)', fontSize: '14px', color: 'var(--color-accent)', letterSpacing: '1px' }}>
                 Festival · {festival.edition}
               </div>
