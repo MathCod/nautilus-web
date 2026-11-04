@@ -1,0 +1,48 @@
+:root {
+  --color-bg: #F2E8D0;
+  --color-card: #EADDBF;
+  --color-selected: #DCCA9C;
+  --color-text: #2A1E14;
+  --color-text-muted: #6B5640;
+  --color-accent: #8C2F1B;
+  --color-sea: #4A6A7E;
+  --color-border: #B49D73;
+
+  --font-sc: 'IM Fell English SC', Georgia, serif;
+  --font-display: 'IM Fell English', Georgia, serif;
+  --font-body: 'EB Garamond', Garamond, serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #dfd2b5; /* Arrière-plan pour grands écrans */
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Conteneur type "application mobile" centré sur grand écran */
+#app-container {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
