@@ -1,9 +1,7 @@
 import {
-  categories,
   compareEvenements,
   debutDate,
   evenements,
-  festival,
   finDate,
   lieux,
   projets,
