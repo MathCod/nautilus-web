@@ -258,10 +258,14 @@ function MarkerItem({
   selected: boolean;
   onClick: () => void;
 }) {
-  const r = selected ? 20 : 15;
+  // Rayon agrandi : 22 en normal, 28 si sélectionné (au lieu de 15 et 20)
+  const r = selected ? 28 : 22;
 
   return (
     <g onClick={onClick} style={{ cursor: "pointer" }}>
+      <circle cx={x} cy={y} r={r + 14} fill="transparent" />
+
+      {/* Halo pointillé si sélectionné */}
       {selected && (
         <circle
           cx={x}
@@ -269,44 +273,48 @@ function MarkerItem({
           r={r + 10}
           fill="none"
           stroke="var(--color-accent)"
-          strokeWidth="2.5"
-          strokeDasharray="4 3"
+          strokeWidth="3.5"
+          strokeDasharray="5 4"
         />
       )}
 
-      <circle cx={x + 1} cy={y + 2} r={r} fill="#2A1E14" opacity="0.35" />
+      {/* Ombre de la pastille */}
+      <circle cx={x + 2} cy={y + 3} r={r} fill="#2A1E14" opacity="0.35" />
 
+      {/* Pastille vermillon */}
       <circle
         cx={x}
         cy={y}
         r={r}
         fill={selected ? "#D9714F" : "#8C2F1B"}
         stroke="#F2E8D0"
-        strokeWidth="2.2"
+        strokeWidth="2.8"
       />
 
+      {/* Numéro du lieu agrandi */}
       <text
         x={x}
-        y={y + (selected ? 6 : 5)}
+        y={y + (selected ? 8 : 7)}
         textAnchor="middle"
         fill="#F2E8D0"
-        fontSize={selected ? 17 : 14}
+        fontSize={selected ? 24 : 19}
         fontFamily="var(--font-display)"
         fontWeight="bold"
       >
         {lieu.numero}
       </text>
 
+      {/* Étiquette texte agrandie avec contour protecteur épais */}
       <text
         x={x}
-        y={y + r + 14}
+        y={y + r + 18}
         textAnchor="middle"
-        fontSize="13"
+        fontSize={selected ? 19 : 17}
         fontFamily="var(--font-display)"
         fontStyle="italic"
         fill="#F2E8D0"
         stroke="#F2E8D0"
-        strokeWidth="4"
+        strokeWidth="6"
         paintOrder="stroke"
         strokeLinejoin="round"
       >
@@ -314,13 +322,13 @@ function MarkerItem({
       </text>
       <text
         x={x}
-        y={y + r + 14}
+        y={y + r + 18}
         textAnchor="middle"
-        fontSize="13"
+        fontSize={selected ? 19 : 17}
         fontFamily="var(--font-display)"
         fontStyle="italic"
         fill={selected ? "#8C2F1B" : "#2A1E14"}
-        fontWeight={selected ? "bold" : "normal"}
+        fontWeight="bold"
       >
         {labelCourt}
       </text>
