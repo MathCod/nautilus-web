@@ -3,7 +3,8 @@
 > **Festival des arts, des sciences & des écritures numériques**  
 > *Iᵉ édition — Campus Landes — 8 avril 2027*
 
-Application web interactive **Mobile-First** conçue avec **React, TypeScript et Vite**, déployée en continu sur **Vercel**.  
+Application web interactive **Mobile-First** conçue avec **React, TypeScript et Vite**, déployée en continu sur **Vercel**.
+Voici le Lien **Vercel** : https://nautilus-web-lemon.vercel.app/
 Ce projet propose un carnet de bord numérique complet, fonctionnant **100 % hors ligne** avec un univers graphique inspiré de la cartographie et de l'imprimerie du XIXᵉ siècle.
 
 ---
