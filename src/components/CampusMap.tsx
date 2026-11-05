@@ -2,11 +2,9 @@ import { useState, useRef } from "react";
 import type { Lieu } from "../data/festival";
 import { lieux } from "../data/festival";
 
-// Dimensions du plan aquarellé
 const VB_W = 1000;
 const VB_H = 710;
 
-// Coordonnées précises des 9 repères sur votre vraie carte
 const POSITIONS_REELLES: Record<
   string,
   { x: number; y: number; label: string }
@@ -41,12 +39,14 @@ export function CampusMap({
     setPos({ x: 0, y: 0 });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest("button")) return;
     setIsDragging(true);
     dragStart.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setPos({
       x: e.clientX - dragStart.current.x,
@@ -54,7 +54,13 @@ export function CampusMap({
     });
   };
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsDragging(false);
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+    }
+  };
 
   return (
     <div
@@ -71,10 +77,10 @@ export function CampusMap({
       }}
     >
       <div
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         style={{
           width: "100%",
           height: "100%",
@@ -82,6 +88,7 @@ export function CampusMap({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          touchAction: "none",
         }}
       >
         <div
@@ -97,7 +104,6 @@ export function CampusMap({
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             style={{ width: "100%", height: "100%", display: "block" }}
           >
-            {/* L'AQUARELLE DU CAMPUS EN FOND */}
             <image
               href="/plan.png"
               x="0"
@@ -107,7 +113,6 @@ export function CampusMap({
               preserveAspectRatio="none"
             />
 
-            {/* BÂTIMENT OUEST (PRIVÉ / NON ACCESSIBLE) */}
             <g transform="translate(370, 420)">
               <rect
                 x="-55"
@@ -145,7 +150,6 @@ export function CampusMap({
               </text>
             </g>
 
-            {/* LES 9 PASTILLES NUMÉROTÉES CLIQUABLES */}
             {lieux.map((lieu) => {
               const posReelle = POSITIONS_REELLES[lieu.id] || {
                 x: lieu.x,
@@ -170,7 +174,6 @@ export function CampusMap({
         </div>
       </div>
 
-      {/* BOUTONS DE ZOOM */}
       <div
         style={{
           position: "absolute",
@@ -255,11 +258,14 @@ function MarkerItem({
   selected: boolean;
   onClick: () => void;
 }) {
-  const r = selected ? 20 : 15;
+  // Rayon agrandi : 22 en normal, 28 si sélectionné (au lieu de 15 et 20)
+  const r = selected ? 28 : 22;
 
   return (
     <g onClick={onClick} style={{ cursor: "pointer" }}>
-      {/* Halo clignotant / surbrillance si sélectionné */}
+      <circle cx={x} cy={y} r={r + 14} fill="transparent" />
+
+      {/* Halo pointillé si sélectionné */}
       {selected && (
         <circle
           cx={x}
@@ -267,13 +273,13 @@ function MarkerItem({
           r={r + 10}
           fill="none"
           stroke="var(--color-accent)"
-          strokeWidth="2.5"
-          strokeDasharray="4 3"
+          strokeWidth="3.5"
+          strokeDasharray="5 4"
         />
       )}
 
       {/* Ombre de la pastille */}
-      <circle cx={x + 1} cy={y + 2} r={r} fill="#2A1E14" opacity="0.35" />
+      <circle cx={x + 2} cy={y + 3} r={r} fill="#2A1E14" opacity="0.35" />
 
       {/* Pastille vermillon */}
       <circle
@@ -282,33 +288,33 @@ function MarkerItem({
         r={r}
         fill={selected ? "#D9714F" : "#8C2F1B"}
         stroke="#F2E8D0"
-        strokeWidth="2.2"
+        strokeWidth="2.8"
       />
 
-      {/* Numéro du lieu */}
+      {/* Numéro du lieu agrandi */}
       <text
         x={x}
-        y={y + (selected ? 6 : 5)}
+        y={y + (selected ? 8 : 7)}
         textAnchor="middle"
         fill="#F2E8D0"
-        fontSize={selected ? 17 : 14}
+        fontSize={selected ? 24 : 19}
         fontFamily="var(--font-display)"
         fontWeight="bold"
       >
         {lieu.numero}
       </text>
 
-      {/* Étiquette avec contour sous la pastille */}
+      {/* Étiquette texte agrandie avec contour protecteur épais */}
       <text
         x={x}
-        y={y + r + 14}
+        y={y + r + 18}
         textAnchor="middle"
-        fontSize="13"
+        fontSize={selected ? 19 : 17}
         fontFamily="var(--font-display)"
         fontStyle="italic"
         fill="#F2E8D0"
         stroke="#F2E8D0"
-        strokeWidth="4"
+        strokeWidth="6"
         paintOrder="stroke"
         strokeLinejoin="round"
       >
@@ -316,13 +322,13 @@ function MarkerItem({
       </text>
       <text
         x={x}
-        y={y + r + 14}
+        y={y + r + 18}
         textAnchor="middle"
-        fontSize="13"
+        fontSize={selected ? 19 : 17}
         fontFamily="var(--font-display)"
         fontStyle="italic"
         fill={selected ? "#8C2F1B" : "#2A1E14"}
-        fontWeight={selected ? "bold" : "normal"}
+        fontWeight="bold"
       >
         {labelCourt}
       </text>
