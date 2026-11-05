@@ -155,11 +155,6 @@ Déclenchement automatique : Chaque commit poussé sur la branche main (git push
 Commande de build Vercel : npm run build
 Commande d'installation Vercel : npm install --legacy-peer-deps
 Dossier de sortie : dist
-<br>
-7. Points Clés pour l'Évaluation
-Architecture Offline-First : Aucune requête réseau externe n'est effectuée pendant l'utilisation. L'application reste pleinement fonctionnelle en sous-sol ou en cas de coupure réseau.
-Conception UI/UX & Design System : Cohérence stricte de la palette chromatique (sépias, encres, vermillon) et des échelles typographiques du XIXᵉ siècle, avec retour d'état tactile pour chaque action.
-Optimisation Cartographique : Intégration d'un plan patrimonial réel superposé à un calque vectoriel interactif léger sans dépendances lourdes.
-Agent conversationnel déterministe : Conception d'un système expert sans dépendance à une API LLM externe payante ou lente, garantissant des réponses en moins de 10 ms.
-Portabilité Web : Réduction radicale de la dette technique par rapport à la version React Native d'origine, rendant la solution universelle (fonctionne sur Safari iOS, Chrome Android, tablettes et PC).
-Projet réalisé dans le cadre du Festival Nautilus 2026.
+
+Projet réalisé dans le cadre du Festival Nautilus 2027.
+Par Zacharie CHAMARD & Mathias BERGER
