@@ -174,13 +174,13 @@ export const evenements: Evenement[] = [
   },
   {
     id: 'atelier-typo',
-    titre: 'Atelier de typographie au plomb',
+    titre: 'Dessine ta machine extraordinaire',
     jour: '2027-04-08',
-    debut: '10:30',
-    fin: '12:30',
+    debut: '14:00',
+    fin: '22:30',
     lieuId: 'ateliers',
     categorie: 'Atelier',
-    description: 'Composition manuelle et impression d’affiches sur presse à épreuves. Tous niveaux.',
+    description: 'Sur une tablette, le visiteur dessine sa machine volante ou sous-marine, qui prend vie et navigue dans un océan ou un ciel animé projeté au mur.',
     projetIds: ['typographie-maree'],
   },
   {
