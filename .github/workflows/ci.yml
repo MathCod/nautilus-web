@@ -1,0 +1,31 @@
+name: CI - Vérification du code
+
+on:
+  push:
+    branches: [ main, work ]
+  pull_request:
+    branches: [ main, work ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupération du code source
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # 2. Configuration de l'environnement Node.js
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Installation des dépendances
+      - name: Installation des dépendances
+        run: npm install --legacy-peer-deps
+
+      # 4. Vérification de la compilation (Build)
+      - name: Vérification du build Vite
+        run: npm run build
