@@ -7,8 +7,8 @@
 export const festival = {
   nom: 'Nautilus',
   sousTitre: 'Festival des arts, des sciences & des écritures numériques',
-  edition: 'IIIe édition',
-  lieu: "Campus de l'École",
+  edition: 'Ie édition',
+  lieu: "Campus Landes",
   jours: [
     { date: '2026-11-19', label: 'Jeudi 19', court: 'Jeu. 19' },
     { date: '2026-11-20', label: 'Vendredi 20', court: 'Ven. 20' },
