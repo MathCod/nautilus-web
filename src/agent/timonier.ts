@@ -46,7 +46,7 @@ export type Contexte = {
 
 export const SUGGESTIONS_ACCUEIL = [
   'Qu’est-ce qui se passe maintenant ?',
-  'Quels concerts samedi ?',
+  'Quels concerts ce soir ?',
   'Où manger ?',
   'Des projets de photographie ?',
 ];
@@ -66,11 +66,6 @@ const MOTS_CATEGORIES_TOUS = new Set(Object.values(MOTS_CATEGORIES).flat());
 
 const contient = (q: string, motifs: string[]) => motifs.some((m) => new RegExp(`\\b${m}\\b`).test(q));
 
-const dateIso = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-const estJourFestival = (date: string): date is JourDate => festival.jours.some((j) => j.date === date);
-
 function heureEnMinutes(q: string): { minutes: number; reste: string } | undefined {
   const m = q.match(/\b(\d{1,2})\s*(?:h|:|heures?)\s*(\d{2})?\b/);
   if (!m) return undefined;
@@ -79,33 +74,10 @@ function heureEnMinutes(q: string): { minutes: number; reste: string } | undefin
   return { minutes: h * 60 + Number(m[2] ?? 0), reste: q.replace(m[0], ' ') };
 }
 
-function lireJours(q: string, maintenant: Date): { jours: JourDate[]; horsFestival?: string } {
-  const jours: JourDate[] = [];
-  const noms = ['jeudi', 'vendredi', 'samedi'];
-  festival.jours.forEach((j, i) => {
-    const numero = j.date.slice(-2);
-    if (new RegExp(`\\b(${noms[i]}|${numero})\\b`).test(q)) jours.push(j.date);
-  });
-
-  const relatif = /\baujourd hui\b|\bce soir\b|\bcet apres midi\b|\bce matin\b/.test(q)
-    ? 0
-    : /\bdemain\b/.test(q)
-      ? 1
-      : undefined;
-  if (relatif !== undefined) {
-    const d = new Date(maintenant);
-    d.setDate(d.getDate() + relatif);
-    const iso = dateIso(d);
-    if (estJourFestival(iso)) jours.push(iso);
-    else return { jours, horsFestival: relatif === 0 ? 'aujourd’hui' : 'demain' };
-  }
-  return { jours };
-}
-
 function lireMoment(q: string): { intervalle: [number, number]; nom: string } | undefined {
   if (/\bsoir|soiree|nuit\b/.test(q)) return { intervalle: [18 * 60, 24 * 60], nom: 'en soirée' };
   if (/\bapres midi\b|\baprem\b/.test(q)) return { intervalle: [12 * 60, 18 * 60], nom: 'l’après-midi' };
-  if (/\bmatin|matinee\b/.test(q)) return { intervalle: [0, 12 * 60], nom: 'le matin' };
+  if (/\bmatin|matinee\b/.test(q)) return { intervalle: [0, 12 * 60], nom: 'ce matin' };
   if (/\bmidi\b/.test(q)) return { intervalle: [11 * 60 + 30, 14 * 60], nom: 'vers midi' };
   return undefined;
 }
@@ -123,19 +95,21 @@ function plusQue(total: number) {
 
 function decrireEvenement(e: Evenement) {
   const lieu = lieuParId(e.lieuId);
-  return `« ${e.titre} » : ${jourLabel(e.jour).toLowerCase()} de ${heure(e.debut)} à ${heure(e.fin)}${lieu ? `, ${lieu.nom} (repère ${lieu.numero})` : ''}.`;
+  return `« ${e.titre} » : de ${heure(e.debut)} à ${heure(e.fin)}${lieu ? `, ${lieu.nom} (repère ${lieu.numero})` : ''}.`;
 }
 
 export function repondre(question: string, { maintenant, favoris }: Contexte): Reponse {
   const q = normaliser(question);
-  const debutFestival = new Date(`${festival.jours[0].date}T00:00:00`);
+  const dateFest = festival.jours[0].date;
+  const debutFestival = new Date(`${dateFest}T00:00:00`);
+  const finFestival = new Date(`${dateFest}T23:59:59`);
   const avantFestival = maintenant < debutFestival;
 
   if (!q) return aide();
 
   if (/^(bonjour|bonsoir|salut|coucou|hello|ahoy|hey)\b/.test(q) && q.split(' ').length <= 3) {
     return {
-      texte: 'Bien le bonjour, moussaillon ! Je tiens la barre du festival : demandez-moi le programme, un lieu ou les travaux des élèves.',
+      texte: 'Bien le bonjour, moussaillon ! Je tiens la barre du festival pour la journée du 8 avril 2027 : demandez-moi le programme, un lieu ou les travaux des élèves.',
       cartes: [],
       suggestions: SUGGESTIONS_ACCUEIL,
     };
@@ -160,7 +134,7 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
       return {
         texte: 'Votre parcours est encore vierge. Touchez ☆ à côté d’un évènement pour l’y consigner.',
         cartes: versCartes(evenements.filter((e) => e.phare).sort(compareEvenements)),
-        suggestions: ['Les temps forts ?', 'Quoi demain ?'],
+        suggestions: ['Les temps forts ?', 'Quels concerts ce soir ?'],
       };
     }
     const prochains = liste.filter((e) => new Date(`${e.jour}T${e.fin}:00`) > maintenant);
@@ -192,9 +166,9 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
     if (avantFestival) {
       const jours = Math.ceil((debutFestival.getTime() - maintenant.getTime()) / 86_400_000);
       return {
-        texte: `Le festival n’a pas encore levé l’ancre : ouverture ${jours <= 1 ? 'demain' : `dans ${jours} jours`}, le ${jourLabel(festival.jours[0].date).toLowerCase()} novembre. Voici les premières escales.`,
+        texte: `Le festival ouvrira le jeudi 8 avril 2027 (dans ${jours} jours). Voici les premières escales de la journée :`,
         cartes: versCartes(prochains),
-        suggestions: ['Les temps forts ?', 'Quels ateliers jeudi ?'],
+        suggestions: ['Les temps forts ?', 'Quels ateliers l’après-midi ?'],
       };
     }
     if (demandeMaintenant && enCours.length) {
@@ -204,15 +178,15 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
         suggestions: ['Et ensuite ?', 'Où manger ?'],
       };
     }
-    if (!prochains.length) {
+    if (maintenant > finFestival) {
       return {
-        texte: 'Rideau ! Le programme est terminé, mais les travaux des élèves restent à découvrir.',
+        texte: 'Rideau ! La journée du festival est terminée, mais les travaux des élèves restent à découvrir.',
         cartes: [],
         suggestions: ['Montre-moi les travaux', 'Des projets de photographie ?'],
       };
     }
     return {
-      texte: demandeMaintenant ? 'Entracte : rien en cours à cet instant. Voici la suite.' : 'Voici les prochaines escales.',
+      texte: demandeMaintenant ? 'Entracte : rien en cours à cet instant. Voici la suite.' : 'Voici les prochaines escales de la journée :',
       cartes: versCartes(prochains),
       suggestions: ['Quoi ce soir ?', 'Mon parcours'],
     };
@@ -220,7 +194,7 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
 
   if (/\b(temps forts?|incontournable|incontournables|a ne pas manquer|phare|phares|meilleur|meilleurs|conseille|conseilles|recommande)\b/.test(q) && !veutProjets) {
     return {
-      texte: 'Les escales à ne pas manquer, marquées ✦ dans le programme :',
+      texte: 'Les escales incontournables du 8 avril, marquées ✦ dans le programme :',
       cartes: versCartes(evenements.filter((e) => e.phare).sort(compareEvenements)),
       suggestions: ['Quoi ce soir ?', 'Où est le Grand Amphithéâtre ?'],
     };
@@ -228,7 +202,6 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
 
   const heureDemandee = heureEnMinutes(q);
   const sansHeure = heureDemandee?.reste ?? q;
-  const { jours, horsFestival } = lireJours(sansHeure, maintenant);
   const moment = lireMoment(sansHeure);
   const cats = categories.filter((c) => contient(sansHeure, MOTS_CATEGORIES[c]));
 
@@ -261,7 +234,7 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
     }
   }
 
-  if (!jours.length && !moment && !heureDemandee && !lieu) {
+  if (!moment && !heureDemandee && !lieu) {
     const mots = motsCles(q).filter((m) => !MOTS_CATEGORIES_TOUS.has(m));
     const motsDuTitre = (titre: string) => {
       const t = normaliser(titre).split(' ');
@@ -282,17 +255,9 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
     }
   }
 
-  if (horsFestival && !jours.length) {
-    return {
-      texte: `Pas de festival ${horsFestival} : il se tient du ${festival.jours[0].label.toLowerCase()} au ${festival.jours[festival.jours.length - 1].label.toLowerCase()} novembre. Voici ce qui est prévu le premier jour.`,
-      cartes: versCartes(chercherEvenements({ jours: [festival.jours[0].date], categories: cats, debutEntre: moment?.intervalle })),
-      suggestions: ['Les temps forts ?', 'Quoi vendredi soir ?'],
-    };
-  }
-
-  if (jours.length || moment || heureDemandee || cats.length || lieu) {
+  if (moment || heureDemandee || cats.length || lieu) {
     const filtre: FiltreEvenements = {
-      jours,
+      jours: [dateFest],
       categories: cats,
       lieuId: lieu?.id,
       debutEntre: moment?.intervalle,
@@ -300,7 +265,6 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
     };
     const morceaux = [
       cats.length ? cats.map((c) => c.toLowerCase()).join(' ou ') : null,
-      jours.length ? jours.map((j) => jourLabel(j).toLowerCase()).join(' et ') : null,
       moment?.nom,
       heureDemandee ? `à ${enHeure(heureDemandee.minutes)}` : null,
       lieu ? lieu.nom : null,
@@ -314,9 +278,8 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
       ],
       [
         moment || heureDemandee ? { ...filtre, debutEntre: undefined, enCoursA: undefined } : null,
-        'rien à ce moment-là ; voici le reste du jour.',
+        'rien à ce moment-là ; voici le reste de la journée.',
       ],
-      [jours.length && (cats.length || lieu) ? { ...filtre, jours: [], debutEntre: undefined, enCoursA: undefined } : null, 'rien ce jour-là ; voici les autres jours.'],
     ];
     for (const [variante, precision] of relachements) {
       if (!variante) continue;
@@ -329,11 +292,11 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
             : `${liste.length === 1 ? 'Une escale' : pluriel(liste.length, 'escale')} — ${morceaux.join(', ')}.`) +
           plusQue(liste.length),
         cartes: [...(lieu && demandeOu ? [{ type: 'lieu' as const, lieu }] : []), ...versCartes(liste)],
-        suggestions: jours.length ? ['Et ensuite ?', 'Où manger ?'] : ['Quoi samedi ?', 'Mon parcours'],
+        suggestions: ['Quoi ce soir ?', 'Où manger ?'],
       };
     }
     return {
-      texte: `Je ne trouve rien pour : ${morceaux.join(', ')}. Essayez un autre jour ou une autre catégorie.`,
+      texte: `Je ne trouve rien pour : ${morceaux.join(', ')}. Essayez un autre créneau ou une autre catégorie.`,
       cartes: lieu ? [{ type: 'lieu', lieu }] : [],
       suggestions: ['Les temps forts ?', 'Qu’est-ce qui se passe maintenant ?'],
     };
@@ -363,7 +326,7 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
   }
 
   return {
-    texte: 'Mille sabords, je n’ai rien trouvé à ce sujet. Je connais le programme, les lieux du campus et les travaux des élèves : essayez l’une de ces questions.',
+    texte: 'Mille sabords, je n’ai rien trouvé à ce sujet. Je connais le programme du 8 avril, les lieux du campus et les travaux des élèves : essayez l’une de ces questions.',
     cartes: [],
     suggestions: SUGGESTIONS_ACCUEIL,
   };
@@ -372,7 +335,7 @@ export function repondre(question: string, { maintenant, favoris }: Contexte): R
 function aide(): Reponse {
   return {
     texte:
-      'Je suis le Timonier, le guide du festival. Je réponds hors connexion, à partir du livre de bord embarqué. Demandez-moi par exemple ce qui se passe à une heure donnée, où se trouve un lieu, quels concerts ont lieu samedi, ou quels travaux d’élèves voir en photographie.',
+      'Je suis le Timonier, le guide du festival. Je réponds hors connexion pour la journée du jeudi 8 avril 2027. Demandez-moi par exemple ce qui se passe à 14h, où se trouve un lieu, ou quels travaux d’élèves voir en photographie.',
     cartes: [],
     suggestions: SUGGESTIONS_ACCUEIL,
   };
